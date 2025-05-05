@@ -11,6 +11,7 @@
         <li><a href="warehouse-manager/index.php">Warehouse Manager Dashboard</a></li>
         <li><a href="delivery-manager/index.php">Delivery Manager Dashboard</a></li>
         <li><a href="vendor/index.php">Vendor Dashboard</a></li>
+        <link rel="stylesheet" href="../css/style.css">
     </ul>
 </body>
 </html>

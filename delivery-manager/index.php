@@ -2,7 +2,7 @@
 // Include the database connection
 require_once '../db/connection.php';
 
-// Fetch all delivery requests along with the farm and warehouse details
+// Fetch all delivery requests along with the farm and product details
 $query = "
     SELECT 
         dr.request_id, 
@@ -10,18 +10,18 @@ $query = "
         dr.status AS request_status,
         dr.request_date, 
         p.product_name, 
-        p.product_type, 
         f.farm_name, 
-        f.location_subdistrict AS farm_location, 
+        f.farm_id, 
+        f.location_subdistrict AS farm_location,
         w.location_subdistrict AS warehouse_location,
         dt.quantity AS delivered_quantity, 
-        dt.status AS delivery_status, 
-        dt.delivery_date 
+        dt.status AS delivery_status,  -- Delivery status from delivery_track
+        dt.delivery_date  -- Delivery date from delivery_track
     FROM 
         delivery_request dr
-    INNER JOIN product p ON dr.product_id = p.product_id
-    INNER JOIN farm_product fp ON fp.product_id = p.product_id
-    INNER JOIN farm f ON f.farm_id = fp.farm_id
+    LEFT JOIN farm_product fp ON dr.product_id = fp.farm_product_id
+    LEFT JOIN product p ON fp.product_id = p.product_id
+    LEFT JOIN farm f ON dr.farm_id = f.farm_id
     LEFT JOIN delivery_track dt ON dr.request_id = dt.delivery_request_id
     LEFT JOIN warehouse w ON dt.warehouse_id = w.warehouse_id
 ";
@@ -29,6 +29,8 @@ $query = "
 $stmt = $pdo->prepare($query);
 $stmt->execute();
 $delivery_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 ?>
 
 <!DOCTYPE html>
@@ -43,6 +45,14 @@ $delivery_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <h1>Delivery Manager Dashboard</h1>
 
+<!-- Check if the delivery data is fetched successfully -->
+<?php if (!empty($delivery_data)): ?>
+    <p>Delivery data fetched successfully.</p>
+<?php else: ?>
+    <p>No delivery data found. Check the database and query.</p>
+<?php endif; ?>
+
+<!-- Delivery Requests Table -->
 <table border="1">
     <thead>
         <tr>
@@ -65,7 +75,12 @@ $delivery_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <td><?php echo htmlspecialchars($data['delivery_date']); ?></td>
                 <td><?php echo htmlspecialchars($data['delivery_status']); ?></td>
                 <td>
-                    <a href="edit_delivery.php?id=<?php echo $data['request_id']; ?>">Edit Status</a>
+                    <?php if ($data['delivery_status'] == 'Pending' || $data['delivery_status'] == 'Dispatched'): ?>
+                        <a href="edit_delivery.php?id=<?php echo $data['request_id']; ?>">Edit Status</a>
+                    <?php else: ?>
+                        <!-- If status is Delivered or Cancelled, don't show the button -->
+                        Status Finalized
+                    <?php endif; ?>
                 </td>
             </tr>
         <?php endforeach; ?>

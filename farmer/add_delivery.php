@@ -15,24 +15,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt_warehouse->execute([$warehouse_name]);
     $warehouse_id = $stmt_warehouse->fetchColumn();
 
-    // Step 2: Insert the delivery request into the delivery_request table
-    $delivery_request_query = "INSERT INTO delivery_request (product_id, quantity, status, request_date) 
-                               VALUES (?, ?, ?, ?)";
+    // Step 2: Fetch the farm_id associated with the farm_product_id
+    $query_farm_id = "SELECT farm_id FROM farm_product WHERE farm_product_id = ?";
+    $stmt_farm_id = $pdo->prepare($query_farm_id);
+    $stmt_farm_id->execute([$farm_product_id]);
+    $farm_id = $stmt_farm_id->fetchColumn();
+
+    // Step 3: Insert the delivery request into the delivery_request table
+    $delivery_request_query = "INSERT INTO delivery_request (product_id, quantity, status, request_date, farm_id) 
+                               VALUES (?, ?, ?, ?, ?)";
     $stmt_delivery_request = $pdo->prepare($delivery_request_query);
     $stmt_delivery_request->execute([ 
         $farm_product_id, 
         $quantity, 
         'Pending', // Default status
-        $delivery_date
+        $delivery_date,
+        $farm_id // Include farm_id in the request
     ]);
     
     // Get the last inserted request_id
     $delivery_request_id = $pdo->lastInsertId();
 
-    // Step 3: Insert the delivery track into the delivery_track table
+    // Step 4: Insert the delivery track into the delivery_track table
     $delivery_track_query = "INSERT INTO delivery_track (quantity, delivery_request_id, warehouse_id, 
-                            product_id, status, delivery_date) 
-                            VALUES (?, ?, ?, ?, ?, ?)";
+                            product_id, status, delivery_date, farm_id) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt_delivery_track = $pdo->prepare($delivery_track_query);
     $stmt_delivery_track->execute([
         $quantity,
@@ -40,10 +47,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $warehouse_id,
         $farm_product_id,
         'Pending', // Default status
-        $delivery_date
+        $delivery_date,
+        $farm_id // Include farm_id in the delivery track
     ]);
 
-    // Step 4: Update the quantity in the farm_product table (reduce by the quantity delivered)
+    // Step 5: Update the quantity in the farm_product table (reduce by the quantity delivered)
     $update_quantity_query = "UPDATE farm_product SET quantity = quantity - :quantity WHERE farm_product_id = :farm_product_id";
     $stmt_update_quantity = $pdo->prepare($update_quantity_query);
     $stmt_update_quantity->bindParam(':quantity', $quantity);
