@@ -38,6 +38,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head><title>Add Product</title></head>
 <body>
 <h1>Add New Product</h1>
+<link rel="stylesheet" href="../css/style.css">
 <form method="post">
     <label for="product_name">Product Name:</label>
     <input name="product_name" type="text" required><br><br>

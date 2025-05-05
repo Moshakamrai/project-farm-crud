@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 
 <h1>Edit Delivery Status</h1>
-
+<link rel="stylesheet" href="../css/style.css">
 <form method="POST">
     <label for="farm_name">Farm Name:</label>
     <input type="text" id="farm_name" value="<?php echo htmlspecialchars($delivery_data['farm_name']); ?>" disabled><br><br>
