@@ -11,15 +11,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $product_id = $pdo->lastInsertId();
 
     // Insert product data into the farm_product table, including all necessary fields
-    $stmt = $pdo->prepare("INSERT INTO farm_product (product_id, quantity, grade, shelf_life, ideal_temp, humidity) 
-                           VALUES (?, ?, ?, ?, ?, ?)");
+    $farm_id = 1; // Default to farm_id 1 if not found
+
+    // Insert data into the farm_product table, including farm_id
+    $stmt = $pdo->prepare("INSERT INTO farm_product (product_id, quantity, grade, shelf_life, ideal_temp, humidity, farm_id) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
         $product_id, 
         $_POST['quantity'], 
         $_POST['grade'], 
         $_POST['shelf_life'], // Add shelf_life
         $_POST['ideal_temp'], // Add ideal_temp
-        $_POST['humidity']    // Add humidity
+        $_POST['humidity'],   // Add humidity
+        $farm_id              // Insert farm_id (default to 1)
     ]);
 
     header("Location: index.php");

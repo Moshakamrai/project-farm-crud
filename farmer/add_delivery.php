@@ -21,6 +21,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt_farm_id->execute([$farm_product_id]);
     $farm_id = $stmt_farm_id->fetchColumn();
 
+    // Check if farm_id is null, and set to a default value (e.g., 1)
+    if ($farm_id === null) {
+        $farm_id = 1; // Default farm_id when it's not found
+    }
+
     // Step 3: Insert the delivery request into the delivery_request table
     $delivery_request_query = "INSERT INTO delivery_request (product_id, quantity, status, request_date, farm_id) 
                                VALUES (?, ?, ?, ?, ?)";
